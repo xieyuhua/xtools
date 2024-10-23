@@ -89,3 +89,245 @@
 [Rubick 插件数据库](https://gitcode.net/rubickcenter/rubick-database)
 
 [Rubick Plugin CLI](https://github.com/rubickCenter/rubick-plugin-cli)
+
+
+rubick 目录介绍   
+````
+├── docs # 文档存方目录
+│   ├── docs
+│   ├── package-lock.json
+│   ├── package.json
+│   └── pnpm-lock.yaml
+├── feature # 插件市场插件
+│   ├── README.md
+│   ├── babel.config.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   ├── src
+│   ├── tsconfig.json
+│   └── vue.config.js
+├── public # rubick __static 目录
+│   ├── favicon.ico
+│   ├── feature
+│   ├── icons
+│   ├── index.html
+│   ├── preload.js
+│   └── tpl
+├── src # rubick 核心源码
+│   ├── common # 一些通用的函数
+│   ├── core # 一些核心的能力，比如 app search
+│   ├── main # 主进程
+│   └── renderer # 渲染进程
+├── tpl # rubick 模板插件
+│   ├── README.md
+│   ├── babel.config.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   ├── src
+│   ├── tsconfig.json
+│   └── vue.config.js
+├── LICENSE # MIT 协议
+├── README.md # 英文文档
+├── README.zh-CN.md # 中文文档
+├── babel.config.js
+├── deploy-doc.sh # rubick doc 发布脚本
+├── tsconfig.json
+├── package-lock.json
+├── package.json
+└── vue.config.js
+```
+
+启动
+1. 安装依赖    
+rubick 启动主要涉及到3个目录：
+
+根目录：rubick 核心进程   
+feature：rubick 内置的插件市场插件   
+tpl: rubick 内置的模板插件   
+```
+$ npm i
+$ cd feature && npm i
+$ cd tpl && npm i
+```
+2. 启动核心进程
+```
+$ npm run electron:serve
+```
+3. 启动插件中心 非必须
+```
+$ cd feature && npm run serve
+```
+4. 启动模板插件 非必须
+```
+$ cd tpl && npm run serve
+```
+编译
+```
+$ cd feature && npm run build
+$ cd tpl && npm run build
+$ npm run electron:build
+```
+
+
+
+
+## 开发 UI 插件   
+
+1. 安装插件 CI 工具
+```
+$ npm install -g rubick-plugin-cli
+```
+2. 快速创建项目
+```
+$ rubick create <plugin-name>
+```
+一个最基础插件的目录是这样的：   
+```
+rubick-plugin-demo
+  |-- index.html
+  |-- package.json
+  |-- preload.js
+```
+# 文件说明   
+package.json   
+用于指定插件最基础的配置，一个最基础的配置信息如下：  
+```
+{
+  "name": "rubick-ui-plugin-demo",
+  "pluginName": "插件demo",
+  "description": "rubick ui 插件demo",
+  "author": "muwoo",
+  "main": "index.html",
+  "logo": "https://www.img/demo.png",
+  "version": "0.0.1",
+  "preload":"preload.js",
+  "homePage": "https://gitee.com/rubick-center/rubick-ui-plugin-demo/raw/master/README.md",
+  "pluginType": "ui",
+  "features": [
+    {
+      "code": "index",
+      "explain": "测试插件",
+      "cmds":[
+        "demo",
+        "测试"
+      ]
+    }
+  ]
+}
+```
+核心字段说明：
+
+name： 插件 npm 包名称，必填   
+pluginName： 插件显示名称，用于展示给使用者 必填   
+description： 插件描述，描述这个插件的作用 必填   
+author： 插件作者   
+main： 入口文件，一般为 index.html   
+logo： 尺寸建议 200 * 200, 插件的 logo, 需要是 http/https 在线地址，不支持本地logo 必填   
+version： 插件的版本 必填   
+preload： 预加载脚本   
+homePage: 插件 readme raw 地址   
+pluginType: 插件类型，枚举：ui, system. 当前选 ui 必填   
+features： 插件核心功能列表 必填   
+features.code： 插件某个功能的识别码，可用于区分不同的功能 必填   
+features.explain： 插件某个功能的解释 必填   
+features.cmds： 输入框内搜索该 cmd 进入插件 必填   
+index.html   
+插件的入口文件，用于展示插件的样式，一个最基础的 html 结构可以是这样：   
+   ```
+<!DOCTYPE html>
+<html>
+<body>
+  hello Rubick
+  <button id="showNotification">通知</button>
+</body>
+<script>
+  document.getElementById('showNotification').addEventListener('click', () => {
+    window.showNotification();
+  })
+</script>
+</html>
+```
+preload.js   
+细心的同学可能已经注意到上面的 index.html 使用了一个全局函数 showNotification 那么这个函数是在哪里定义的呢？ 答案就是在 preload.js 里面。preload.js 可以为页面提供全局函数
+```
+window.showNotification = function () {
+  rubick.showNotification('HI, rubick')
+}
+```
+rubick 更多支持 API 能力参考：rubick 全局API(opens new window)
+
+# 测试写好的插件   
+由于 rubick 插件是基于 npm 的管理方式，所以开发者调试插件，也是基于 npm 的软连接的方式进行调试。 首先需要再插件 package.json 目录下执行:
+```
+$ npm link
+```
+然后将插件通过插件市场的 开发者 菜单进行安装，填写插件的 name 即可，如果插件需要调试，可以通过右上角 ... 来打开开发者工具进行调试，页面变更直接刷新即可：
+
+
+## 开发系统插件
+一个最基础插件的目录是这样的：
+```
+rubick-system-plugin-demo
+  |-- package.json
+  |-- index.js
+```
+# 文件说明
+package.json
+用于指定插件最基础的配置，一个最基础的配置信息如下：
+```
+{
+  "name": "rubick-system-plugin-demo",
+  "pluginName": "rubick 系统插件demo",
+  "version": "0.0.0",
+  "description": "rubick 系统插件demo",
+  "entry": "index.js",
+  "logo": "https://xxxx/upload/202112/08/5bac90649c5343cabb63930b131cf8e6.png",
+  "pluginType": "system",
+  "author": "muwoo",
+  "homepage": ""
+}
+```
+核心字段说明：
+
+name： 插件 npm 包名称，必填   
+pluginName： 插件显示名称，用于展示给使用者 必填   
+description： 插件描述，描述这个插件的作用 必填   
+author： 插件作者   
+entry： 入口文件，一般为 index.js   
+logo： 尺寸建议 200 * 200, 插件的 logo, 需要是 http/https 在线地址，不支持本地logo 必填   
+version： 插件的版本 必填   
+homePage: 插件 readme raw 地址   
+pluginType: 插件类型，枚举：ui, system. 当前选 system 必填   
+index.js   
+插件的入口文件，用于 rubick 主进程进行加载执行： 
+```
+module.exports = () => {
+  return {
+    onReady(ctx) {
+      const { Notification } = ctx;
+      new Notification({
+        title: "测试系统插件",
+        body: "这是一个系统插件，在rubick运行时，立即被加载"
+      }).show()
+    }
+  }
+}
+```
+index.js 需要返回一个包含 onReady 生命周期的函数，该函数接受 ctx 对象作为参数，我们可以通过 ctx 使用 electron 主进程所有能力。 同时也为 ctx 上扩展挂在了 mainWindow 对象。
+
+# 调试插件
+由于 rubick 插件是基于 npm 的管理方式，所以开发者调试插件，也是基于 npm 的软连接的方式进行调试。 首先需要再插件 package.json 目录下执行:
+```
+$ npm link
+```
+然后将插件通过插件市场的 开发者 菜单进行安装，填写插件的 name 即可。由于插件依赖于主进程启动执行，所以安装完成后需要重启 rubick 后才能生效。
+
+
+# 发布插件
+这里介绍完了如何开发插件，最后非常欢迎为 rubick 贡献开源插件，发布插件也非常简单，首先需要把自己的插件发布到 npm 仓库：
+```
+$ npm publish
+```
+然后再给 rubick-database/plugins/total-plugins.json (opens new window)仓库提个 pull request, 把你的 package.json 信息加入 json 文件内，等我们 merge 了您的提交，插件将会自动上架。
